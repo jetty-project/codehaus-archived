@@ -1,0 +1,164 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.mortbay.jetty</groupId>
+    <artifactId>jetty-site-parent</artifactId>
+    <version>1</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.mortbay.jetty</groupId>
+  <artifactId>jetty-website</artifactId>
+  <packaging>pom</packaging>
+  <name>Jetty Website :: Project Website</name>
+  <build>
+    <plugins>
+    <!--
+     * Process:
+     *   
+     * - pull jetty-maven-plugin site component
+     * - pull jetty-maven-jspc-plugin site component
+     * - pull jetty7 aggregate jxr + javadoc site component
+     * - pull jetty6 aggregate jxr + javadoc site component
+     * - pull jetty configure.dtd site component 
+     * - push everything into correct location
+     * - generate site
+     *
+     * the pulling aggregates will be based on the ${jetty#.version} defined in the root
+     * pom, for each jetty release, 6 or 7 we will simply re-release the site, which is why the 
+     * website is now versioned seperately.
+    -->
+    
+    <plugin>
+      <artifactId>maven-dependency-plugin</artifactId>
+      <executions>
+           <execution>
+             <id>unpack</id>
+             <phase>generate-resources</phase>
+             <goals>
+               <goal>unpack</goal>
+             </goals>
+             <configuration>
+               <artifactItems>              
+                 <artifactItem>
+                   <groupId>org.mortbay.jetty</groupId>
+                   <artifactId>project-site</artifactId>
+                   <version>${jetty6.version}</version>
+                   <classifier>site-component</classifier>
+                   <type>jar</type>
+                   <overWrite>true</overWrite>                  
+                   <includes>**</includes>        
+                 </artifactItem>
+                 <artifactItem>
+                   <groupId>org.mortbay.jetty</groupId>
+                   <artifactId>jetty</artifactId>
+                   <version>${jetty7.version}</version>
+                   <classifier>site-component</classifier>
+                   <type>jar</type>
+                   <overWrite>true</overWrite>                  
+                   <includes>**</includes>        
+                 </artifactItem>
+                 <artifactItem>
+                   <groupId>org.mortbay.jetty</groupId>
+                   <artifactId>jetty-maven-plugin</artifactId>
+                   <version>${jetty7.version}</version>
+                   <classifier>site-component</classifier>
+                   <type>jar</type>
+                   <overWrite>true</overWrite>                                    
+                   <includes>**</includes>        
+                 </artifactItem>
+                 <artifactItem>
+                   <groupId>org.mortbay.jetty</groupId>
+                   <artifactId>jetty-jspc-maven-plugin</artifactId>
+                   <version>${jetty7.version}</version>
+                   <classifier>site-component</classifier>
+                   <type>jar</type>
+                   <overWrite>true</overWrite>              
+                   <includes>**</includes>        
+                 </artifactItem>
+                 <artifactItem>
+                   <groupId>org.mortbay.jetty</groupId>
+                   <artifactId>jetty-distribution</artifactId>
+                   <version>${jetty7.version}</version>
+                   <classifier>site-component</classifier>
+                   <type>jar</type>
+                   <overWrite>true</overWrite>              
+                   <includes>**</includes>        
+                 </artifactItem>
+               </artifactItems>
+             </configuration>
+           </execution>
+         </executions>
+    </plugin>
+   
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copyfile</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>        
+                <copy file="${basedir}/target/dependency/jetty-${jetty7.version}/jetty-distribution-${jetty7.version}-site-component/README.txt" todir="${basedir}/target/site/" failonerror="false" />
+                <copy file="${basedir}/target/dependency/jetty-${jetty7.version}/jetty-distribution-${jetty7.version}-site-component/VERSION.txt" todir="${basedir}/target/site/" failonerror="false" />
+                <copy file="${basedir}/target/dependency/jetty-${jetty7.version}/jetty-distribution-${jetty7.version}-site-component/LICENSES/LICENSE.txt" todir="${basedir}/target/site/" failonerror="false" />            
+                <copy todir="${basedir}/target/site/jetty7/apidocs" failonerror="false" overwrite="true">
+                  <fileset dir="${basedir}/target/dependency/jetty-${jetty7.version}/jetty-distribution-${jetty7.version}-site-component/target/site/apidocs">
+                    <include name="**/**" />
+                  </fileset>
+                </copy>
+                <copy todir="${basedir}/target/site/jetty7/xref" failonerror="false" overwrite="true">
+                  <fileset dir="${basedir}/target/dependency/jetty-${jetty7.version}/jetty-distribution-${jetty7.version}-site-component/target/site/xref">
+                    <include name="**/**" />
+                  </fileset>
+                </copy>
+                <copy todir="${basedir}/target/site/jetty6/apidocs" failonerror="false" overwrite="true">
+                  <fileset dir="${basedir}/target/dependency/project-site-${jetty6.version}/jetty-distribution-${jetty6.version}-site-component/target/site/apidocs">
+                    <include name="**/**" />
+                  </fileset>
+                </copy>
+                <copy todir="${basedir}/target/site/jetty6/xref" failonerror="false" overwrite="true">
+                  <fileset dir="${basedir}/target/dependency/project-site-${jetty6.version}/jetty-distribution-${jetty6.version}-site-component/target/site/xref">
+                    <include name="**/**" />
+                  </fileset>
+                </copy>
+                <!-- what are these?
+                <copy todir="${basedir}/target/site/xref-test" failonerror="false" overwrite="true">
+                  <fileset dir="${basedir}/../../../target/site/xref-test">
+                    <include name="**/**" />
+                  </fileset>
+                </copy>
+                -->
+                <copy file="${basedir}/target/dependency/jetty-${jetty7.version}/jetty/src/main/resources/org/mortbay/xml/configure_6_0.dtd" tofile="${basedir}/target/site/configure_6_0.dtd" />
+                <copy file="${basedir}/target/site/configure_6_0.dtd" tofile="${basedir}/target/site/configure_1_0.dtd" />
+                <copy file="${basedir}/target/site/configure_6_0.dtd" tofile="${basedir}/target/site/configure_1_1.dtd" />
+                <copy file="${basedir}/target/site/configure_6_0.dtd" tofile="${basedir}/target/site/configure_1_2.dtd" />
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <configuration>
+          <aggregate>false</aggregate>
+        </configuration>
+        <executions>
+          <execution>
+            <id>site</id>
+            <phase>install</phase>
+            <goals>
+              <goal>site</goal>
+            </goals>
+          </execution>
+          <configuration>
+          </configuration>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
